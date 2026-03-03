@@ -1,0 +1,13 @@
+[package]
+name = "cheeryeditor"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wgpu = "28.0"
+winit = "0.30"
+glyphon = "0.10"
+pollster = "0.4"
+ropey = "1.6"
+unicode-width = "0.2"
+unicode-segmentation = "1.11"
