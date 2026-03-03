@@ -282,17 +282,31 @@ impl ApplicationHandler for App {
         let window = Arc::new(event_loop.create_window(attrs).expect("create window"));
         let size = window.inner_size();
 
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::all(),
+            ..Default::default()
+        });
         let surface = instance
             .create_surface(window.clone())
             .expect("create surface");
 
-        let adapter =
+        // Try high-performance GPU first, fall back to any available adapter (incl. software)
+        let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            compatible_surface: Some(&surface),
+            ..Default::default()
+        }))
+        .or_else(|| {
             pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::LowPower,
                 compatible_surface: Some(&surface),
                 ..Default::default()
             }))
-            .expect("no adapter found");
+        })
+        .unwrap_or_else(|| {
+            eprintln!("No graphics adapter found. Install GPU drivers or Mesa (llvmpipe) for software rendering.");
+            std::process::exit(1);
+        });
 
         let (device, queue) =
             pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
