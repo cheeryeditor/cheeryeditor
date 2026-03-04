@@ -4,6 +4,7 @@ use glyphon::{
     Resolution, Shaping, SwashCache, TextArea, TextAtlas, TextRenderer, Viewport,
 };
 
+#[allow(dead_code)]
 pub struct Renderer {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -94,7 +95,10 @@ impl Renderer {
         self.surface_config.height
     }
 
-    pub fn render<'a>(&mut self, text_areas: impl IntoIterator<Item = TextArea<'a>>) -> Result<(), wgpu::SurfaceError> {
+    pub fn render<'a>(
+        &mut self,
+        text_areas: impl IntoIterator<Item = TextArea<'a>>,
+    ) -> Result<(), wgpu::SurfaceError> {
         self.viewport.update(
             &self.queue,
             Resolution {
@@ -160,24 +164,21 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn create_text_buffer(
-        &mut self,
-        text: &str,
-        width: f32,
-        color: [f32; 4],
-    ) -> GlyphonBuffer {
+    pub fn create_text_buffer(&mut self, text: &str, width: f32, color: [f32; 4]) -> GlyphonBuffer {
         let metrics = Metrics::new(self.theme.font_size, self.theme.line_height_px());
         let mut buffer = GlyphonBuffer::new(&mut self.font_system, metrics);
         buffer.set_size(&mut self.font_system, Some(width), None);
         buffer.set_text(
             &mut self.font_system,
             text,
-            &Attrs::new().family(Family::Monospace).color(GlyphonColor::rgba(
-                (color[0] * 255.0) as u8,
-                (color[1] * 255.0) as u8,
-                (color[2] * 255.0) as u8,
-                (color[3] * 255.0) as u8,
-            )),
+            &Attrs::new()
+                .family(Family::Monospace)
+                .color(GlyphonColor::rgba(
+                    (color[0] * 255.0) as u8,
+                    (color[1] * 255.0) as u8,
+                    (color[2] * 255.0) as u8,
+                    (color[3] * 255.0) as u8,
+                )),
             Shaping::Advanced,
             None,
         );
@@ -200,7 +201,7 @@ impl Renderer {
         buffer.shape_until_scroll(&mut self.font_system, false);
 
         for run in buffer.layout_runs() {
-            for glyph in run.glyphs.iter() {
+            if let Some(glyph) = run.glyphs.iter().next() {
                 return glyph.w;
             }
         }

@@ -7,16 +7,10 @@ struct Snapshot {
     cursor: Cursor,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Cursor {
     pub line: usize,
     pub col: usize,
-}
-
-impl Default for Cursor {
-    fn default() -> Self {
-        Self { line: 0, col: 0 }
-    }
 }
 
 pub struct Buffer {
@@ -66,7 +60,7 @@ impl Buffer {
         let path = self
             .path
             .as_ref()
-            .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "no file path set"))?
+            .ok_or_else(|| std::io::Error::other("no file path set"))?
             .clone();
         self.save_as(&path)
     }

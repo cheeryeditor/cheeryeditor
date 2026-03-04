@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 
 // Buffer is not exported as a library, so we replicate the core structure
 // for benchmarking. When a lib.rs is added, replace with `use cheeryeditor::Buffer`.
@@ -34,8 +34,7 @@ impl BenchBuffer {
     }
 
     fn insert_char(&mut self, ch: char) {
-        self.undo_stack
-            .push((self.text.clone(), self.cursor));
+        self.undo_stack.push((self.text.clone(), self.cursor));
         let line_start = self.text.line_to_char(self.cursor.line);
         let idx = line_start + self.cursor.col;
         self.text.insert_char(idx, ch);
@@ -53,8 +52,7 @@ impl BenchBuffer {
         if idx == 0 {
             return;
         }
-        self.undo_stack
-            .push((self.text.clone(), self.cursor));
+        self.undo_stack.push((self.text.clone(), self.cursor));
         let ch = self.text.char(idx - 1);
         self.text.remove(idx - 1..idx);
         if ch == '\n' {
@@ -160,9 +158,7 @@ fn bench_mixed_editing(c: &mut Criterion) {
 fn bench_rope_clone(c: &mut Criterion) {
     let mut group = c.benchmark_group("rope_clone_for_undo");
     for &line_count in &[100, 1_000, 10_000] {
-        let content: String = (0..line_count)
-            .map(|i| format!("Line {}.\n", i))
-            .collect();
+        let content: String = (0..line_count).map(|i| format!("Line {}.\n", i)).collect();
         let rope = Rope::from_str(&content);
         group.bench_with_input(
             BenchmarkId::from_parameter(format!("{}lines", line_count)),

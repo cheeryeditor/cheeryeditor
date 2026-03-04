@@ -81,10 +81,11 @@ impl App {
             Key::Character(c) => {
                 let ctrl = self.modifiers.control_key();
                 let alt = self.modifiers.alt_key();
-                if !ctrl && !alt {
-                    if let Some(ch) = c.chars().next() {
-                        self.editor.handle_command_char(ch);
-                    }
+                if !ctrl
+                    && !alt
+                    && let Some(ch) = c.chars().next()
+                {
+                    self.editor.handle_command_char(ch);
                 }
             }
             _ => {}
@@ -173,7 +174,11 @@ impl App {
             format!(
                 " {} {}",
                 path_display,
-                if self.editor.buf().modified { "[+]" } else { "" }
+                if self.editor.buf().modified {
+                    "[+]"
+                } else {
+                    ""
+                }
             )
         };
         let status_right = format!(
@@ -184,13 +189,10 @@ impl App {
         let status_text = format!("{status_left}    {status_right}");
 
         // Create glyphon buffers
-        let main_buf =
-            renderer.create_text_buffer(&visible_text, text_area_width, theme.fg);
-        let gutter_buf =
-            renderer.create_text_buffer(&gutter_text, gutter_width, theme.gutter_fg);
+        let main_buf = renderer.create_text_buffer(&visible_text, text_area_width, theme.fg);
+        let gutter_buf = renderer.create_text_buffer(&gutter_text, gutter_width, theme.gutter_fg);
         let tab_buf = renderer.create_text_buffer(&tab_text, width, theme.tab_fg);
-        let status_buf =
-            renderer.create_text_buffer(&status_text, width, theme.status_bar_fg);
+        let status_buf = renderer.create_text_buffer(&status_text, width, theme.status_bar_fg);
 
         let text_areas = vec![
             TextArea {
@@ -305,15 +307,13 @@ impl ApplicationHandler for App {
             std::process::exit(1);
         });
 
-        let (device, queue) =
-            pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
-                label: Some("cheeryeditor"),
-                ..Default::default()
-            }))
-            .expect("request device failed");
+        let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
+            label: Some("cheeryeditor"),
+            ..Default::default()
+        }))
+        .expect("request device failed");
 
-        let mut renderer =
-            Renderer::new(surface, &adapter, device, queue, size.width, size.height);
+        let mut renderer = Renderer::new(surface, &adapter, device, queue, size.width, size.height);
         self.char_width = renderer.char_width();
         self.renderer = Some(renderer);
         self.window = Some(window);

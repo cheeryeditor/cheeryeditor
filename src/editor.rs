@@ -60,10 +60,7 @@ impl Editor {
 
     pub fn open_file(&mut self, path: &std::path::Path) -> std::io::Result<()> {
         let buf = Buffer::from_file(path)?;
-        if self.buffers.len() == 1
-            && !self.buffers[0].modified
-            && self.buffers[0].path.is_none()
-        {
+        if self.buffers.len() == 1 && !self.buffers[0].modified && self.buffers[0].path.is_none() {
             self.buffers[0] = buf;
         } else {
             self.buffers.push(buf);
@@ -199,7 +196,7 @@ impl Editor {
                 Err(e) => self.status_msg = format!("Save error: {e}"),
             },
             _ if cmd.starts_with("o ") || cmd.starts_with("open ") => {
-                let path_str = cmd.splitn(2, ' ').nth(1).unwrap_or("");
+                let path_str = cmd.split_once(' ').map(|x| x.1).unwrap_or("");
                 let path = PathBuf::from(path_str);
                 match self.open_file(&path) {
                     Ok(()) => self.status_msg = format!("Opened {}", path.display()),

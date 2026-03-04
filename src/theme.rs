@@ -1,4 +1,5 @@
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Theme {
     pub bg: [f64; 4],
     pub fg: [f32; 4],
