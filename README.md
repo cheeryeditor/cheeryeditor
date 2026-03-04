@@ -16,7 +16,7 @@ It covers the full range of text-based editing: source code, documentation, note
 
 ## Status
 
-Phase 1 (Core Editor) largely complete. See [ROADMAP.md](ROADMAP.md) for details.
+Phase 1 (Core Editor) largely complete. See [ROADMAP.md](ROADMAP.md) for progress and [DESIGN.md](DESIGN.md) for architecture details.
 
 ---
 
