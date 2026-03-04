@@ -1,7 +1,7 @@
 use crate::theme::Theme;
 use glyphon::{
     Attrs, Buffer as GlyphonBuffer, Cache, Color as GlyphonColor, Family, FontSystem, Metrics,
-    Resolution, Shaping, SwashCache, TextArea, TextAtlas, TextBounds, TextRenderer, Viewport,
+    Resolution, Shaping, SwashCache, TextArea, TextAtlas, TextRenderer, Viewport,
 };
 
 pub struct Renderer {
@@ -94,7 +94,7 @@ impl Renderer {
         self.surface_config.height
     }
 
-    pub fn render(&mut self, text_areas: &[TextArea<'_>]) -> Result<(), wgpu::SurfaceError> {
+    pub fn render<'a>(&mut self, text_areas: impl IntoIterator<Item = TextArea<'a>>) -> Result<(), wgpu::SurfaceError> {
         self.viewport.update(
             &self.queue,
             Resolution {

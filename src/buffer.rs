@@ -318,4 +318,146 @@ mod tests {
         assert_eq!(buf.cursor.line, 1);
         assert_eq!(buf.cursor.col, 1); // clamped to line length
     }
+
+    // --- Stability / Stress Tests ---
+
+    #[test]
+    fn stress_rapid_insert_delete_cycle() {
+        let mut buf = Buffer::empty();
+        for i in 0..5_000 {
+            if i % 3 == 0 {
+                buf.delete_char_backward();
+            } else if i % 7 == 0 {
+                buf.insert_newline();
+            } else {
+                buf.insert_char((b'a' + (i % 26) as u8) as char);
+            }
+        }
+        // Buffer should remain consistent
+        assert!(buf.cursor.line < buf.line_count());
+        assert!(buf.cursor.col <= buf.line_len(buf.cursor.line));
+    }
+
+    #[test]
+    fn stress_undo_redo_full_cycle() {
+        let mut buf = Buffer::empty();
+        let edit_count = 200;
+        for i in 0..edit_count {
+            buf.insert_char((b'a' + (i % 26) as u8) as char);
+        }
+        // Undo everything
+        for _ in 0..edit_count {
+            buf.undo();
+        }
+        assert_eq!(buf.text.len_chars(), 0);
+        // Redo everything
+        for _ in 0..edit_count {
+            buf.redo();
+        }
+        assert_eq!(buf.text.len_chars(), edit_count);
+    }
+
+    #[test]
+    fn stress_large_document_navigation() {
+        let mut buf = Buffer::empty();
+        // Build a 1000-line document
+        for i in 0..1_000 {
+            for ch in format!("Line {}\n", i).chars() {
+                buf.insert_char(ch);
+            }
+        }
+        assert_eq!(buf.line_count(), 1001); // 1000 newlines + trailing empty line
+        // Navigate to top and back to bottom
+        buf.move_to_top();
+        assert_eq!(buf.cursor.line, 0);
+        buf.move_to_bottom();
+        assert_eq!(buf.cursor.line, buf.line_count() - 1);
+        // Rapid up/down movement
+        for _ in 0..2_000 {
+            buf.move_up();
+        }
+        assert_eq!(buf.cursor.line, 0);
+        for _ in 0..2_000 {
+            buf.move_down();
+        }
+        assert_eq!(buf.cursor.line, buf.line_count() - 1);
+    }
+
+    #[test]
+    fn stress_cursor_bounds_after_edits() {
+        let mut buf = Buffer::empty();
+        // Insert multi-line content
+        for ch in "Hello\nWorld\nFoo\nBar".chars() {
+            buf.insert_char(ch);
+        }
+        // Move to a long line then delete chars to shorten it
+        buf.move_to_top();
+        buf.move_end(); // col = 5
+        buf.move_down(); // col clamped to 5 on "World"
+        assert!(buf.cursor.col <= buf.line_len(buf.cursor.line));
+
+        // Delete everything on this line via backspace
+        let len = buf.line_len(buf.cursor.line);
+        for _ in 0..len {
+            buf.delete_char_backward();
+        }
+        assert_eq!(buf.cursor.col, 0);
+    }
+
+    #[test]
+    fn stress_file_roundtrip() {
+        let mut buf = Buffer::empty();
+        for ch in "Hello\nWorld\n".chars() {
+            buf.insert_char(ch);
+        }
+        let dir = std::env::temp_dir();
+        let path = dir.join("cheeryeditor_test_roundtrip.txt");
+        buf.save_as(&path).unwrap();
+
+        let loaded = Buffer::from_file(&path).unwrap();
+        assert_eq!(loaded.text.to_string(), buf.text.to_string());
+        assert!(!loaded.modified);
+        std::fs::remove_file(&path).ok();
+    }
+
+    #[test]
+    fn stress_unicode_content() {
+        let mut buf = Buffer::empty();
+        let unicode_text = "你好世界\n🎉🚀\nこんにちは\nПривет\n";
+        for ch in unicode_text.chars() {
+            buf.insert_char(ch);
+        }
+        assert_eq!(buf.line_count(), 5);
+        assert_eq!(buf.line_text(0), "你好世界");
+        assert_eq!(buf.line_text(1), "🎉🚀");
+        assert_eq!(buf.line_text(2), "こんにちは");
+        assert_eq!(buf.line_text(3), "Привет");
+
+        // Cursor movement should work with unicode
+        buf.move_to_top();
+        buf.move_end();
+        assert_eq!(buf.cursor.col, 4); // 4 CJK chars
+        buf.move_down();
+        assert_eq!(buf.cursor.col, 2); // clamped to 2 emoji chars
+    }
+
+    #[test]
+    fn stress_scroll_visibility() {
+        let mut buf = Buffer::empty();
+        for i in 0..200 {
+            for ch in format!("Line {}\n", i).chars() {
+                buf.insert_char(ch);
+            }
+        }
+        let viewport = 40;
+        buf.move_to_top();
+        buf.ensure_cursor_visible(viewport);
+        assert_eq!(buf.scroll_offset, 0);
+
+        buf.move_to_bottom();
+        buf.ensure_cursor_visible(viewport);
+        assert!(buf.scroll_offset > 0);
+        assert!(buf.cursor.line >= buf.scroll_offset);
+        assert!(buf.cursor.line < buf.scroll_offset + viewport);
+    }
 }

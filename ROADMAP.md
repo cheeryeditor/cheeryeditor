@@ -11,8 +11,10 @@
 - [x] Command palette (Ctrl+P) with quit/save/open commands
 - [x] Bundled monospace font (JetBrains Mono)
 - [x] Unit tests for buffer operations
+- [x] Stability/stress tests (unicode, large docs, cursor bounds, file roundtrip)
+- [x] Performance benchmarks (criterion: insert, undo/redo, large doc editing, rope clone)
+- [x] CI setup — GitHub Actions matrix (Linux, macOS, Windows)
 - [ ] Text selection and clipboard
-- [ ] CI setup
 
 ## Phase 2 — Syntax & Highlighting
 

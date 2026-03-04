@@ -1,9 +1,6 @@
 use crate::editor::{Editor, EditorAction, Mode};
 use crate::renderer::Renderer;
-use glyphon::{
-    Attrs, Buffer as GlyphonBuffer, Color as GlyphonColor, Family, Metrics, Shaping, TextArea,
-    TextBounds,
-};
+use glyphon::{Color as GlyphonColor, TextArea, TextBounds};
 use std::sync::Arc;
 use winit::{
     application::ApplicationHandler,
@@ -254,7 +251,7 @@ impl App {
             },
         ];
 
-        match renderer.render(&text_areas) {
+        match renderer.render(text_areas) {
             Ok(()) => {}
             Err(wgpu::SurfaceError::Lost) => {
                 let w = renderer.width();
@@ -296,14 +293,14 @@ impl ApplicationHandler for App {
             compatible_surface: Some(&surface),
             ..Default::default()
         }))
-        .or_else(|| {
+        .or_else(|_| {
             pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::LowPower,
                 compatible_surface: Some(&surface),
                 ..Default::default()
             }))
         })
-        .unwrap_or_else(|| {
+        .unwrap_or_else(|_| {
             eprintln!("No graphics adapter found. Install GPU drivers or Mesa (llvmpipe) for software rendering.");
             std::process::exit(1);
         });

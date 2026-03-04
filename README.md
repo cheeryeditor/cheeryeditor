@@ -14,21 +14,28 @@ It covers the full range of text-based editing: source code, documentation, note
 
 ---
 
-## Status
+## Planned Features
 
-Phase 1 (Core Editor) largely complete. See [ROADMAP.md](ROADMAP.md) for progress and [DESIGN.md](DESIGN.md) for architecture details.
+- Fast startup, low memory footprint, single binary
+- Markdown editing with live preview and frontmatter support
+- Syntax highlighting for code and common file formats
+- Lightweight code navigation via Tree-sitter (go to definition, find references)
+- First-class Git UI — hunk staging, blame, diff, history, merge resolver
+- Agent panel — attach to a CLI agent, stream output, review file changes
+- Optional LSP support
+- Vim / Emacs keybinding profiles
 
 ---
 
 ## Getting Started
 
-Build from source:
+No releases yet. Build from source:
 
 ```bash
 git clone https://github.com/cheeryeditor/cheeryeditor.git
 cd cheeryeditor
 cargo build --release
-./target/release/cheeryeditor [file1] [file2] ...
+./target/release/cheeryeditor .
 ```
 
 ---
